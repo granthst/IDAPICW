@@ -10,7 +10,7 @@ from numpy import *
 def Prior(theData, root, noStates):
     prior = zeros((noStates[root]), float )
     for i in range (0,noStates[root]):
-        prior[i] = float(list(theData[:,root]).count(i))/len(list(theData[:,root]))
+        prior[i] = float(list(theData[:,root]).count(i))/len(list(theData[:,0]))
 
 # Coursework 1 task 1 should be inserted here
     
@@ -21,35 +21,24 @@ def Prior(theData, root, noStates):
 def CPT(theData, varC, varP, noStates):
     cPT = zeros((noStates[varC], noStates[varP]), float )
 # Coursework 1 task 2 should be inserte4d here
-    s = zeros ( (noStates[varP]+1),float)
-    for a in range (1,noStates[varP]+1):
-        s[a] = float(list(theData[:,varP]).count(a-1))
-    head = s[0];tail = s[1]
-    for i in range(0,noStates[varP]):
-        for j in range(0,noStates[varC]):
-            cPT[j][i] = float(list(theData[:,varC][head:tail]).count(j))/s[i+1]
-        if i == 0:
-            head = tail
-            tail = tail + s[2];
-        elif i < noStates[varP]-1:
-            head = tail
-            tail = tail + s[i+2];        
-   
+    for i in range (0,len(list(theData[:,0]))):
+        parentDataPoint = theData[i][varP];
+        childDataPoint = theData[i][varC];
+        cPT[childDataPoint][parentDataPoint] = cPT[childDataPoint][parentDataPoint] + 1
+    for j in range (0,noStates[varP]):
+        cPT[:,j] = cPT[:,j] / float(list(theData[:,varP]).count(j))
 # end of coursework 1 task 2
     return cPT
 # Function to calculate the joint probability table of two variables in the data set
 def JPT(theData, varRow, varCol, noStates):
     jPT = zeros((noStates[varRow], noStates[varCol]), float )
-    count = 0
 #Coursework 1 task 3 should be inserted here
-    for i in range(0,noStates[varCol]):
-        for j in range(0,noStates[varRow]):
-            for k in range (0,44):
-                if theData[k][varCol] == i and theData[k][varRow] == j:
-                    count = count + 1
-            jPT[j][i] = float(count) /44
-            count = 0;
-            
+    for i in range (0,len(list(theData[:,0]))):
+        rowDataPoint = theData[i][varRow];
+        colDataPoint = theData[i][varCol];
+        jPT[rowDataPoint][colDataPoint] = jPT[rowDataPoint][colDataPoint] + 1
+    jPT = jPT / len(list(theData[:,0]))
+    print jPT     
 # end of coursework 1 task 3
     return jPT
 #
@@ -225,7 +214,7 @@ def PrincipalComponents(theData):
 #
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
 theData = array(datain)
-print theData
+#print theData
 AppendString("results.txt","Coursework One Results by dfg")
 AppendString("results.txt","") #blank line
 AppendString("results.txt","The prior probability of node 0")
