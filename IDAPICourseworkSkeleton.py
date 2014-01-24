@@ -38,14 +38,19 @@ def JPT(theData, varRow, varCol, noStates):
         colDataPoint = theData[i][varCol];
         jPT[rowDataPoint][colDataPoint] = jPT[rowDataPoint][colDataPoint] + 1
     jPT = jPT / len(list(theData[:,0]))
-    print jPT     
+    #print jPT     
 # end of coursework 1 task 3
     return jPT
 #
 # Function to convert a joint probability table to a conditional probability table
 def JPT2CPT(aJPT):
 #Coursework 1 task 4 should be inserted here 
-    
+    noRows = aJPT.shape[0]
+    noCols = aJPT.shape[1]
+    for j in range(0,noCols):
+        marginal = sum(aJPT[:,j])
+        aJPT[:,j] = aJPT[:,j] / marginal 
+    #print aJPT    
 # coursework 1 taks 4 ends here
     return aJPT
 
@@ -54,8 +59,13 @@ def JPT2CPT(aJPT):
 def Query(theQuery, naiveBayes): 
     rootPdf = zeros((naiveBayes[0].shape[0]), float)
 # Coursework 1 task 5 should be inserted here
-  
-
+    for i in range(0,naiveBayes[0].shape[0]):
+        rootPdf[i] = naiveBayes[0][i]
+        for j in range(0,len(theQuery)):
+            rootPdf[i] =  rootPdf[i] * naiveBayes[j+1][theQuery[j]][i]
+    if sum(rootPdf) != 0:
+       rootPdf = rootPdf / sum(rootPdf)
+    print rootPdf
 # end of coursework 1 task 5
     return rootPdf
 #
@@ -221,13 +231,28 @@ AppendString("results.txt","The prior probability of node 0")
 prior = Prior(theData, 0, noStates)
 AppendList("results.txt", prior)
 AppendString("results.txt","The conditional probability table between root node and node"+str(2))
-CPt = CPT(theData, 2, 0 , noStates)
-AppendArray("results.txt", CPt)
+CPt2 = CPT(theData, 2, 0 , noStates)
+AppendArray("results.txt", CPt2)
 JPt = JPT(theData, 2, 0 , noStates)
 AppendString("results.txt","The joint probability table between 2 nodes ")
 AppendArray("results.txt", JPt)
+JPt2CPt = JPT2CPT(JPt)
+AppendString("results.txt","The conditional probability table from joint probability table")
+AppendArray("results.txt",JPt2CPt)
+CPt1 = CPT(theData, 1, 0 , noStates)
+CPt3 = CPT(theData, 3, 0 , noStates)
+CPt4 = CPT(theData, 4, 0 , noStates)
+CPt5 = CPT(theData, 5, 0 , noStates)
+theQuery1 = [4,0,0,0,5]
+theQuery2 = [6,5,2,5,5]
+naiveBayes = [array(prior),CPt1,CPt2,CPt3,CPt4,CPt5]
+queryResult1 = Query(theQuery1,naiveBayes)
+queryResult2 = Query(theQuery2,naiveBayes)
+AppendString("results.txt", " result of query " + str(theQuery1) + " :")
+AppendList("results.txt", queryResult1)
+AppendString("results.txt", " result of query " + str(theQuery2) + " :")
+AppendList("results.txt", queryResult2)
 
-JPt2CPt = JPT2CPT(JPT)
 #
 # continue as described
 #
