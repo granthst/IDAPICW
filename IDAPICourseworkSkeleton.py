@@ -106,19 +106,33 @@ def DependencyList(depMatrix):
 def SpanningTreeAlgorithm(depList, noVariables):
     spanningTree = []
     accessibilityMatrix = zeros((noVariables, noVariables), int)
+    outputFile = "accessibilityMatrix.txt"#
     for i in range(0,len(depList)):
         beginNode = depList[i][1]
         endNode = depList[i][2]
+        AppendString(outputFile,i)#
+        AppendArray(outputFile,accessibilityMatrix)#
+        AppendString(outputFile,"")#
         if accessibilityMatrix[beginNode][endNode] == 0:
             spanningTree.append(depList[i])
             accessibilityMatrix[beginNode][endNode] = 1
             accessibilityMatrix[endNode][beginNode] = 1
             for c in range(0,noVariables):
-                if accessibilityMatrix[beginNode][c] == 1:
+                if (accessibilityMatrix[beginNode][c] == 1) and (c != endNode):
                     accessibilityMatrix[c][endNode] = 1
+                    accessibilityMatrix[endNode][c] = 1
+                    for c2 in range(0,noVariables):
+                        if (accessibilityMatrix[c2][endNode] == 1)  and (c2 != c):
+                            accessibilityMatrix[c][c2] = 1
+                            accessibilityMatrix[c2][c] = 1 
             for r in range(0,noVariables):
-                if accessibilityMatrix[r][endNode] == 1:
-                    accessibilityMatrix[beginNode][r] = 1 
+                if (accessibilityMatrix[r][endNode] == 1)  and (r != beginNode):
+                    accessibilityMatrix[beginNode][r] = 1
+                    accessibilityMatrix[r][beginNode] = 1
+                    for r2 in range(0,noVariables):
+                        if (accessibilityMatrix[beginNode][r2] == 1)  and (r2 != r):
+                            accessibilityMatrix[r][r2] = 1
+                            accessibilityMatrix[r2][r] = 1 
     print spanningTree        
     return array(spanningTree)
 #
@@ -288,4 +302,6 @@ spanningTree = SpanningTreeAlgorithm(depList, noVariables)
 AppendString(outputFile,"") #blank line
 AppendString(outputFile,"The spanning tree found for HepatitisC data set")
 AppendArray(outputFile,spanningTree)
-
+outputFile2 = "spanningTree.txt"
+AppendString(outputFile2,noVariables)
+AppendArray(outputFile2,spanningTree)
