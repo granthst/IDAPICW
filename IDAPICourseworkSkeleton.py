@@ -11,8 +11,6 @@ def Prior(theData, root, noStates):
     prior = zeros((noStates[root]), float )
     for i in range (0,noStates[root]):
         prior[i] = float(list(theData[:,root]).count(i))/len(list(theData[:,0]))
-
-# Coursework 1 task 1 should be inserted here
     
 # end of Coursework 1 task 1
     return prior
@@ -20,7 +18,6 @@ def Prior(theData, root, noStates):
 # it is assumed that the states are designated by consecutive integers starting with 0
 def CPT(theData, varC, varP, noStates):
     cPT = zeros((noStates[varC], noStates[varP]), float )
-# Coursework 1 task 2 should be inserte4d here
     for i in range (0,len(list(theData[:,0]))):
         parentDataPoint = theData[i][varP];
         childDataPoint = theData[i][varC];
@@ -37,8 +34,7 @@ def JPT(theData, varRow, varCol, noStates):
         rowDataPoint = theData[i][varRow];
         colDataPoint = theData[i][varCol];
         jPT[rowDataPoint][colDataPoint] = jPT[rowDataPoint][colDataPoint] + 1
-    jPT = jPT / len(list(theData[:,0]))
-    #print jPT     
+    jPT = jPT / len(list(theData[:,0]))     
 # end of coursework 1 task 3
     return jPT
 #
@@ -49,8 +45,7 @@ def JPT2CPT(aJPT):
     noCols = aJPT.shape[1]
     for j in range(0,noCols):
         marginal = sum(aJPT[:,j])
-        aJPT[:,j] = aJPT[:,j] / marginal 
-    #print aJPT    
+        aJPT[:,j] = aJPT[:,j] / marginal    
 # coursework 1 taks 4 ends here
     return aJPT
 
@@ -65,7 +60,6 @@ def Query(theQuery, naiveBayes):
             rootPdf[i] =  rootPdf[i] * naiveBayes[j+1][theQuery[j]][i]
     if sum(rootPdf) != 0:
        rootPdf = rootPdf / sum(rootPdf)
-    print rootPdf
 # end of coursework 1 task 5
     return rootPdf
 #
@@ -77,8 +71,12 @@ def Query(theQuery, naiveBayes):
 def MutualInformation(jP):
     mi=0.0
 # Coursework 2 task 1 should be inserted here
-   
-
+    marginalA = numpy.sum(jP,axis = 1)
+    marginalB = numpy.sum(jP,axis = 0)
+    for i in range(0,jP.shape[0]):
+        for j in range(0,jP.shape[1]):
+            if (jP[i][j] != 0) and (marginalA[i] != 0) and (marginalB[j] != 0):
+                mi = mi + (jP[i][j] * math.log(jP[i][j]/(marginalA[i]*marginalB[j]),2))
 # end of coursework 2 task 1
     return mi
 #
@@ -86,25 +84,42 @@ def MutualInformation(jP):
 def DependencyMatrix(theData, noVariables, noStates):
     MIMatrix = zeros((noVariables,noVariables))
 # Coursework 2 task 2 should be inserted here
-    
-
+    for i in range(0,noVariables):
+        for j in range(0,noVariables):
+            MIMatrix[i][j] = MutualInformation(JPT(theData,i,j,noStates))
 # end of coursework 2 task 2
     return MIMatrix
 # Function to compute an ordered list of dependencies 
 def DependencyList(depMatrix):
     depList=[]
 # Coursework 2 task 3 should be inserted here
-    
-
+    for i in range(0,depMatrix.shape[1]):
+        for j in range(i+1,depMatrix.shape[1]): 
+            depList.append([depMatrix[i][j],i,j])
+    depList.sort(key=lambda x: float(x[0]), reverse = True)
 # end of coursework 2 task 3
-    return array(depList2)
+    return array(depList)
 #
 # Functions implementing the spanning tree algorithm
 # Coursework 2 task 4
 
 def SpanningTreeAlgorithm(depList, noVariables):
     spanningTree = []
-  
+    accessibilityMatrix = zeros((noVariables, noVariables), int)
+    for i in range(0,len(depList)):
+        beginNode = depList[i][1]
+        endNode = depList[i][2]
+        if accessibilityMatrix[beginNode][endNode] == 0:
+            spanningTree.append(depList[i])
+            accessibilityMatrix[beginNode][endNode] = 1
+            accessibilityMatrix[endNode][beginNode] = 1
+            for c in range(0,noVariables):
+                if accessibilityMatrix[beginNode][c] == 1:
+                    accessibilityMatrix[c][endNode] = 1
+            for r in range(0,noVariables):
+                if accessibilityMatrix[r][endNode] == 1:
+                    accessibilityMatrix[beginNode][r] = 1 
+    print spanningTree        
     return array(spanningTree)
 #
 # End of coursework 2
@@ -222,23 +237,24 @@ def PrincipalComponents(theData):
 #
 # main program part for Coursework 1
 #
+"""outputFile = "IDAPIResults01.txt"
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
 theData = array(datain)
 #print theData
-AppendString("results.txt","Coursework One Results by dfg")
-AppendString("results.txt","") #blank line
-AppendString("results.txt","The prior probability of node 0")
+AppendString(outputFile,"Coursework One Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
+AppendString(outputFile,"") #blank line
+AppendString(outputFile,"The prior probability of node 0")
 prior = Prior(theData, 0, noStates)
-AppendList("results.txt", prior)
-AppendString("results.txt","The conditional probability table between root node and node"+str(2))
+AppendList(outputFile, prior)
+AppendString(outputFile,"The conditional probability table P(2|0)")
 CPt2 = CPT(theData, 2, 0 , noStates)
-AppendArray("results.txt", CPt2)
+AppendArray(outputFile, CPt2)
 JPt = JPT(theData, 2, 0 , noStates)
-AppendString("results.txt","The joint probability table between 2 nodes ")
-AppendArray("results.txt", JPt)
+AppendString(outputFile,"The joint probability table between P(2&0)")
+AppendArray(outputFile, JPt)
 JPt2CPt = JPT2CPT(JPt)
-AppendString("results.txt","The conditional probability table from joint probability table")
-AppendArray("results.txt",JPt2CPt)
+AppendString(outputFile,"The conditional probability table P(2|0) calculated from joint probability table P(2&0)")
+AppendArray(outputFile,JPt2CPt)
 CPt1 = CPT(theData, 1, 0 , noStates)
 CPt3 = CPT(theData, 3, 0 , noStates)
 CPt4 = CPT(theData, 4, 0 , noStates)
@@ -248,14 +264,28 @@ theQuery2 = [6,5,2,5,5]
 naiveBayes = [array(prior),CPt1,CPt2,CPt3,CPt4,CPt5]
 queryResult1 = Query(theQuery1,naiveBayes)
 queryResult2 = Query(theQuery2,naiveBayes)
-AppendString("results.txt", " result of query " + str(theQuery1) + " :")
-AppendList("results.txt", queryResult1)
-AppendString("results.txt", " result of query " + str(theQuery2) + " :")
-AppendList("results.txt", queryResult2)
-
+AppendString(outputFile, "result of query " + str(theQuery1) + " :")
+AppendList(outputFile, queryResult1)
+AppendString(outputFile, "result of query " + str(theQuery2) + " :")
+AppendList(outputFile, queryResult2)
+"""
 #
-# continue as described
+# main program part for Coursework 2
 #
-#
-
+outputFile = "IDAPIResults02.txt"
+AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
+AppendString(outputFile,"") #blank line
+AppendString(outputFile,"The Dependency matrix for HepatitisC data set")
+noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
+theData = array(datain)
+MIMatrix = DependencyMatrix(theData, noVariables,noStates) 
+AppendArray(outputFile,MIMatrix)
+depList = DependencyList(MIMatrix)
+AppendString(outputFile,"") #blank line
+AppendString(outputFile,"The Dependency list for HepatitisC data set")
+AppendArray(outputFile,depList)
+spanningTree = SpanningTreeAlgorithm(depList, noVariables)
+AppendString(outputFile,"") #blank line
+AppendString(outputFile,"The spanning tree found for HepatitisC data set")
+AppendArray(outputFile,spanningTree)
 
