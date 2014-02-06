@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# Coursework in Python
+# Coursework in Python 
 from IDAPICourseworkLibrary import *
 from numpy import *
 #
@@ -34,30 +34,30 @@ def JPT(theData, varRow, varCol, noStates):
         rowDataPoint = theData[i][varRow];
         colDataPoint = theData[i][varCol];
         jPT[rowDataPoint][colDataPoint] = jPT[rowDataPoint][colDataPoint] + 1
-    jPT = jPT / len(list(theData[:,0]))
+    jPT = jPT / len(list(theData[:,0]))     
 # end of coursework 1 task 3
     return jPT
 #
 # Function to convert a joint probability table to a conditional probability table
 def JPT2CPT(aJPT):
-#Coursework 1 task 4 should be inserted here
+#Coursework 1 task 4 should be inserted here 
     noRows = aJPT.shape[0]
     noCols = aJPT.shape[1]
     for j in range(0,noCols):
         marginal = sum(aJPT[:,j])
-        aJPT[:,j] = aJPT[:,j] / marginal
+        aJPT[:,j] = aJPT[:,j] / marginal    
 # coursework 1 taks 4 ends here
     return aJPT
 
 #
 # Function to query a naive Bayesian network
-def Query(theQuery, naiveBayes):
+def Query(theQuery, naiveBayes): 
     rootPdf = zeros((naiveBayes[0].shape[0]), float)
 # Coursework 1 task 5 should be inserted here
     for i in range(0,naiveBayes[0].shape[0]):
         rootPdf[i] = naiveBayes[0][i]
         for j in range(0,len(theQuery)):
-            rootPdf[i] = rootPdf[i] * naiveBayes[j+1][theQuery[j]][i]
+            rootPdf[i] =  rootPdf[i] * naiveBayes[j+1][theQuery[j]][i]
     if sum(rootPdf) != 0:
        rootPdf = rootPdf / sum(rootPdf)
 # end of coursework 1 task 5
@@ -92,13 +92,13 @@ def DependencyMatrix(theData, noVariables, noStates):
             MIMatrix[i][j] = MutualInformation(JPT(theData,i,j,noStates))
 # end of coursework 2 task 2
     return MIMatrix
-# Function to compute an ordered list of dependencies
+# Function to compute an ordered list of dependencies 
 def DependencyList(depMatrix):
     depList=[]
 # Coursework 2 task 3 should be inserted here
     # only consider n(n-1)/2 edges in dependency list as we exclude self-edges
     for i in range(0,depMatrix.shape[1]):
-        for j in range(i+1,depMatrix.shape[1]):
+        for j in range(i+1,depMatrix.shape[1]): 
             depList.append([depMatrix[i][j],i,j])
     # sort the dependency list on the dependency values
     depList.sort(key=lambda x: float(x[0]), reverse = True)
@@ -118,7 +118,6 @@ def SpanningTreeAlgorithm(depList, noVariables):
         # extract nodes in edge, call them begin and end
         beginNode = depList[i][1]
         endNode = depList[i][2]
-        #AppendArray(outputFile,accessibilityMatrix)
         # add edge to spanning tree if a path does not already exist between the nodes
         if accessibilityMatrix[beginNode][endNode] == 0:
             spanningTree.append(depList[i])
@@ -131,8 +130,7 @@ def SpanningTreeAlgorithm(depList, noVariables):
                     for beginNodeAccessible in range(0,noVariables):
                         if ((accessibilityMatrix[beginNodeAccessible][beginNode] == 1) or (beginNodeAccessible == beginNode)) and (beginNodeAccessible != endNode):
                             accessibilityMatrix[beginNodeAccessible][endNodeAccessible] = 1
-                            accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1
-    
+                            accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1   
     return array(spanningTree)
 #
 # End of coursework 2
@@ -144,9 +142,9 @@ def SpanningTreeAlgorithm(depList, noVariables):
 def CPT_2(theData, child, parent1, parent2, noStates):
     cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float )
 # Coursework 3 task 1 should be inserted here
-   
+    
 
-# End of Coursework 3 task 1
+# End of Coursework 3 task 1           
     return cPT
 #
 # Definition of a Bayesian Network
@@ -170,8 +168,8 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
 # Coursework 3 task 3 begins here
 
 
-# Coursework 3 task 3 ends here
-    return mdlSize
+# Coursework 3 task 3 ends here 
+    return mdlSize 
 #
 # Function to calculate the joint probability of a single data point in a Network
 def JointProbability(dataPoint, arcList, cptList):
@@ -179,7 +177,7 @@ def JointProbability(dataPoint, arcList, cptList):
 # Coursework 3 task 4 begins here
 
 
-# Coursework 3 task 4 ends here
+# Coursework 3 task 4 ends here 
     return jP
 #
 # Function to calculate the MDLAccuracy from a data set
@@ -188,7 +186,7 @@ def MDLAccuracy(theData, arcList, cptList):
 # Coursework 3 task 5 begins here
 
 
-# Coursework 3 task 5 ends here
+# Coursework 3 task 5 ends here 
     return mdlAccuracy
 #
 # End of coursework 3
@@ -197,7 +195,7 @@ def MDLAccuracy(theData, arcList, cptList):
 #
 def Mean(theData):
     realData = theData.astype(float)
-    noVariables=theData.shape[1]
+    noVariables=theData.shape[1] 
     mean = []
     # Coursework 4 task 1 begins here
 
@@ -209,7 +207,7 @@ def Mean(theData):
 
 def Covariance(theData):
     realData = theData.astype(float)
-    noVariables=theData.shape[1]
+    noVariables=theData.shape[1] 
     covar = zeros((noVariables, noVariables), float)
     # Coursework 4 task 2 begins here
 
@@ -230,7 +228,7 @@ def ProjectFace(theBasis, theMean, theFaceImage):
     return array(magnitudes)
 
 def CreatePartialReconstructions(aBasis, aMean, componentMags):
-    adummystatement = 0 #delete this when you do the coursework
+    adummystatement = 0  #delete this when you do the coursework
     # Coursework 4 task 5 begins here
 
     # Coursework 4 task 5 ends here
@@ -240,7 +238,7 @@ def PrincipalComponents(theData):
     # Coursework 4 task 3 begins here
     # The first part is almost identical to the above Covariance function, but because the
     # data has so many variables you need to use the Kohonen Lowe method described in lecture 15
-    # The output should be a list of the principal components normalised and sorted in descending
+    # The output should be a list of the principal components normalised and sorted in descending 
     # order of their eignevalues magnitudes
 
     
@@ -288,12 +286,12 @@ AppendList(outputFile, queryResult2)
 
 # Output results in text file before transferring to pdf
 outputFile = "IDAPIResults02.txt"
-AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
+AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649833)")
 AppendString(outputFile,"") #blank line
 AppendString(outputFile,"The Dependency matrix for HepatitisC data set")
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
-MIMatrix = DependencyMatrix(theData, noVariables,noStates)
+MIMatrix = DependencyMatrix(theData, noVariables,noStates) 
 AppendArray(outputFile,MIMatrix)
 depList = DependencyList(MIMatrix)
 AppendString(outputFile,"The Dependency list for HepatitisC data set")
