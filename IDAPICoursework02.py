@@ -142,7 +142,11 @@ def SpanningTreeAlgorithm(depList, noVariables):
 def CPT_2(theData, child, parent1, parent2, noStates):
     cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float )
 # Coursework 3 task 1 should be inserted here
+<<<<<<< HEAD
     
+=======
+   
+>>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
 
 # End of Coursework 3 task 1           
     return cPT
@@ -286,7 +290,11 @@ AppendList(outputFile, queryResult2)
 
 # Output results in text file before transferring to pdf
 outputFile = "IDAPIResults02.txt"
+<<<<<<< HEAD
 AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649833)")
+=======
+AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
+>>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
 AppendString(outputFile,"") #blank line
 AppendString(outputFile,"The Dependency matrix for HepatitisC data set")
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")

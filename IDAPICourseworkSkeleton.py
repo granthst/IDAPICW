@@ -118,7 +118,10 @@ def SpanningTreeAlgorithm(depList, noVariables):
         # extract nodes in edge, call them begin and end
         beginNode = depList[i][1]
         endNode = depList[i][2]
+<<<<<<< HEAD
         #AppendArray(outputFile,accessibilityMatrix)
+=======
+>>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
         # add edge to spanning tree if a path does not already exist between the nodes
         if accessibilityMatrix[beginNode][endNode] == 0:
             spanningTree.append(depList[i])
@@ -131,8 +134,12 @@ def SpanningTreeAlgorithm(depList, noVariables):
                     for beginNodeAccessible in range(0,noVariables):
                         if ((accessibilityMatrix[beginNodeAccessible][beginNode] == 1) or (beginNodeAccessible == beginNode)) and (beginNodeAccessible != endNode):
                             accessibilityMatrix[beginNodeAccessible][endNodeAccessible] = 1
+<<<<<<< HEAD
                             accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1
     
+=======
+                            accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1   
+>>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
     return array(spanningTree)
 #
 # End of coursework 2
