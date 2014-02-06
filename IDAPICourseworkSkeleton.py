@@ -11,7 +11,7 @@ def Prior(theData, root, noStates):
     prior = zeros((noStates[root]), float )
     for i in range (0,noStates[root]):
         prior[i] = float(list(theData[:,root]).count(i))/len(list(theData[:,0]))
-    
+
 # end of Coursework 1 task 1
     return prior
 # Function to compute a CPT with parent node varP and xchild node varC from the data array
@@ -23,7 +23,8 @@ def CPT(theData, varC, varP, noStates):
         childDataPoint = theData[i][varC];
         cPT[childDataPoint][parentDataPoint] = cPT[childDataPoint][parentDataPoint] + 1
     for j in range (0,noStates[varP]):
-        cPT[:,j] = cPT[:,j] / float(list(theData[:,varP]).count(j))
+        if float(list(theData[:,varP]).count(j)) != 0:
+            cPT[:,j] = cPT[:,j] / float(list(theData[:,varP]).count(j))
 # end of coursework 1 task 2
     return cPT
 # Function to calculate the joint probability table of two variables in the data set
@@ -112,16 +113,12 @@ def SpanningTreeAlgorithm(depList, noVariables):
     spanningTree = []
     # the (i,j)-th entry of the accessibility matrix = 1 if there exists a path between variables i and j in the network and = 0 otherwise.
     accessibilityMatrix = zeros((noVariables, noVariables), int)
-    outputFile = "accessibilityMatrix.txt"#
     # iterate through all edges in dependency list in descending order of dependency
     for i in range(0,len(depList)):
         # extract nodes in edge, call them begin and end
         beginNode = depList[i][1]
         endNode = depList[i][2]
-<<<<<<< HEAD
         #AppendArray(outputFile,accessibilityMatrix)
-=======
->>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
         # add edge to spanning tree if a path does not already exist between the nodes
         if accessibilityMatrix[beginNode][endNode] == 0:
             spanningTree.append(depList[i])
@@ -134,12 +131,8 @@ def SpanningTreeAlgorithm(depList, noVariables):
                     for beginNodeAccessible in range(0,noVariables):
                         if ((accessibilityMatrix[beginNodeAccessible][beginNode] == 1) or (beginNodeAccessible == beginNode)) and (beginNodeAccessible != endNode):
                             accessibilityMatrix[beginNodeAccessible][endNodeAccessible] = 1
-<<<<<<< HEAD
                             accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1
-    
-=======
-                            accessibilityMatrix[endNodeAccessible][beginNodeAccessible] = 1   
->>>>>>> ba56d4cea02bd738d894a37e87abd6f46a885f48
+
     return array(spanningTree)
 #
 # End of coursework 2
@@ -151,8 +144,17 @@ def SpanningTreeAlgorithm(depList, noVariables):
 def CPT_2(theData, child, parent1, parent2, noStates):
     cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float )
 # Coursework 3 task 1 should be inserted here
-   
-
+    countParentOccurrences = zeros((noStates[parent1],noStates[parent2]), float)
+    for i in range (0,len(list(theData[:,0]))):
+        parent1DataPoint = theData[i][parent1];
+        parent2DataPoint = theData[i][parent2];
+        childDataPoint = theData[i][child];
+        cPT[childDataPoint][parent1DataPoint][parent2DataPoint] = cPT[childDataPoint][parent1DataPoint][parent2DataPoint] + 1
+        countParentOccurrences[parent1DataPoint][parent2DataPoint] = countParentOccurrences[parent1DataPoint][parent2DataPoint] + 1
+    for j in range (0,noStates[parent1]):
+        for k in range (0,noStates[parent2]):
+            if countParentOccurrences[j][k] != 0:
+                cPT[:,j,k] = cPT[:,j,k] / countParentOccurrences[j][k]
 # End of Coursework 3 task 1
     return cPT
 #
@@ -166,17 +168,39 @@ def ExampleBayesianNetwork(theData, noStates):
     cpt4 = CPT(theData, 4, 3, noStates)
     cpt5 = CPT(theData, 5, 3, noStates)
     cptList = [cpt0, cpt1, cpt2, cpt3, cpt4, cpt5]
-    return arcList, cptList
 # Coursework 3 task 2 begins here
-
+    arcList = [[0],[1],[2,0],[3,4],[4,1],[5,4],[6,1],[7,0,1],[8,7]]
+    cpt0 = Prior(theData, 0, noStates)
+    cpt1 = Prior(theData, 1, noStates)
+    cpt2 = CPT(theData, 2, 0, noStates)
+    cpt3 = CPT(theData, 3, 4, noStates)
+    cpt4 = CPT(theData, 4, 1, noStates)
+    cpt5 = CPT(theData, 5, 4, noStates)
+    cpt6 = CPT(theData, 6, 1, noStates)
+    cpt7 = CPT_2(theData, 7, 0, 1, noStates)
+    cpt8 = CPT(theData, 8, 7, noStates)
+    cptList = [cpt0, cpt1, cpt2, cpt3, cpt4, cpt5, cpt6, cpt7, cpt8]
 # end of coursework 3 task 2
+    return arcList, cptList
 #
 # Function to calculate the MDL size of a Bayesian Network
 def MDLSize(arcList, cptList, noDataPoints, noStates):
     mdlSize = 0.0
 # Coursework 3 task 3 begins here
-
-
+    noParameters = 0
+    for i in range (0,len(noStates)):
+        noDimensions = len(cptList[i].shape)
+        if noDimensions == 1:
+            noParameters = noParameters + len(cptList[i]) - 1
+        else:
+            noDegreesFreedom = 1;
+            for j in range (0,len(cptList[i].shape)):
+                if j == 0:
+                    noDegreesFreedom = noDegreesFreedom * (cptList[i].shape[j] - 1)
+                else:
+                    noDegreesFreedom = noDegreesFreedom * cptList[i].shape[j]
+            noParameters = noParameters + noDegreesFreedom
+    mdlSize = noParameters * 1/2 * math.log(noDataPoints,2)
 # Coursework 3 task 3 ends here
     return mdlSize
 #
@@ -184,8 +208,19 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
 def JointProbability(dataPoint, arcList, cptList):
     jP = 1.0
 # Coursework 3 task 4 begins here
-
-
+    for i in range(0,len(arcList)):
+        # root node
+        if len(arcList[i]) == 1:
+            jP = jP * cptList[i][dataPoint[i]]
+        # single parent
+        elif len(arcList[i]) == 2:
+            parent = arcList[i][1]
+            jP = jP * cptList[i][dataPoint[i]][dataPoint[parent]]
+        # multiple parents
+        else:
+            parent1 = arcList[i][1]
+            parent2 = arcList[i][2]
+            jP = jP * cptList[i][dataPoint[i]][dataPoint[parent1]][dataPoint[parent2]]
 # Coursework 3 task 4 ends here
     return jP
 #
@@ -193,10 +228,18 @@ def JointProbability(dataPoint, arcList, cptList):
 def MDLAccuracy(theData, arcList, cptList):
     mdlAccuracy=0
 # Coursework 3 task 5 begins here
-
-
+    for i in range(0,len(theData)):
+        mdlAccuracy = mdlAccuracy + math.log(JointProbability(theData[i], arcList, cptList),2)
 # Coursework 3 task 5 ends here
     return mdlAccuracy
+#
+# Function to find the best scoring network formed by deleting one arc from spanning tree
+def BestScoringNetwork():
+    bestScoringNetwork = []
+# Coursework 3 task 6 begins here
+    
+# Coursework 3 task 6 ends here
+    return array(bestScoringNetwork)
 #
 # End of coursework 3
 #
@@ -250,7 +293,7 @@ def PrincipalComponents(theData):
     # The output should be a list of the principal components normalised and sorted in descending
     # order of their eignevalues magnitudes
 
-    
+
     # Coursework 4 task 6 ends here
     return array(orthoPhi)
 
@@ -287,24 +330,44 @@ queryResult2 = Query(theQuery2,naiveBayes)
 AppendString(outputFile, "result of query " + str(theQuery1) + " :")
 AppendList(outputFile, queryResult1)
 AppendString(outputFile, "result of query " + str(theQuery2) + " :")
-AppendList(outputFile, queryResult2)
-"""
+AppendList(outputFile, queryResult2)"""
+
 #
 # main program part for Coursework 2
 #
 
-# Output results in text file before transferring to pdf
+"""# Output results in text file before transferring to pdf
 outputFile = "IDAPIResults02.txt"
 AppendString(outputFile,"Coursework Two Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
 AppendString(outputFile,"") #blank line
-AppendString(outputFile,"The Dependency matrix for HepatitisC data set")
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
-MIMatrix = DependencyMatrix(theData, noVariables,noStates)
+MIMatrix = DependencyMatrix(theData,noVariables,noStates)
+AppendString(outputFile,"The Dependency matrix for HepatitisC data set")
+
 AppendArray(outputFile,MIMatrix)
 depList = DependencyList(MIMatrix)
 AppendString(outputFile,"The Dependency list for HepatitisC data set")
 AppendArray(outputFile,depList)
 spanningTree = SpanningTreeAlgorithm(depList, noVariables)
 AppendString(outputFile,"The spanning tree found for HepatitisC data set")
-AppendArray(outputFile,spanningTree)
+AppendArray(outputFile,spanningTree)"""
+
+#
+# main program part for Coursework 3
+#
+outputFile = "IDAPIResults03.txt"
+AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
+AppendString(outputFile,"") #blank line
+noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
+theData = array(datain)
+arcList, cptList = ExampleBayesianNetwork(theData,noStates)
+mdlSize = MDLSize(arcList, cptList, noDataPoints, noStates)
+AppendString(outputFile,"The MDLSize of the HepatitisC data set")
+AppendString(outputFile,mdlSize)
+mdlAccuracy = MDLAccuracy(theData, arcList, cptList)
+AppendString(outputFile,"The MDLAccuracy of the HepatitisC data set")
+AppendString(outputFile,mdlAccuracy)
+mdlScore = mdlSize - mdlAccuracy
+AppendString(outputFile,"The MDLScore of the HepatitisC data set")
+AppendString(outputFile,mdlScore)
