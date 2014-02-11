@@ -3,6 +3,7 @@
 # Coursework in Python
 from IDAPICourseworkLibrary import *
 from numpy import *
+import copy
 #
 # Coursework 1 begins here
 #
@@ -200,7 +201,10 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
                 else:
                     noDegreesFreedom = noDegreesFreedom * cptList[i].shape[j]
             noParameters = noParameters + noDegreesFreedom
-    mdlSize = noParameters * 1/2 * math.log(noDataPoints,2)
+    if (noDataPoints != 0):
+        mdlSize = noParameters * 1/2 * math.log(noDataPoints,2)
+    else:
+        mdlSize = 0    
 # Coursework 3 task 3 ends here
     return mdlSize
 #
@@ -229,17 +233,57 @@ def MDLAccuracy(theData, arcList, cptList):
     mdlAccuracy=0
 # Coursework 3 task 5 begins here
     for i in range(0,len(theData)):
-        mdlAccuracy = mdlAccuracy + math.log(JointProbability(theData[i], arcList, cptList),2)
+        if (JointProbability(theData[i], arcList, cptList) != 0):
+            mdlAccuracy = mdlAccuracy + math.log(JointProbability(theData[i], arcList, cptList),2)
 # Coursework 3 task 5 ends here
     return mdlAccuracy
 #
 # Function to find the best scoring network formed by deleting one arc from spanning tree
-def BestScoringNetwork():
-    bestScoringNetwork = []
+def BestScoringNetwork(theData, noStates, noDataPoints):
 # Coursework 3 task 6 begins here
-    
+    arcList, cptList = ExampleBayesianNetwork(theData, noStates);
+    print arcList
+    bestMDLScore = numpy.inf
+    for i in range (0,len(arcList)):
+        print i
+        print arcList[i]
+        if (len(arcList[i]) == 2):
+            childNode = arcList[i][0]
+            parentNode = arcList[i][1]
+            newArcList = copy.deepcopy(arcList)
+            del newArcList[i][1]
+            newCptList = copy.deepcopy(cptList)
+            newCptList[i] = Prior(theData, childNode, noStates)
+            mdlSize = MDLSize(newArcList, newCptList, noDataPoints, noStates)
+            mdlAccuracy = MDLAccuracy(theData, newArcList, newCptList)
+            mdlScore =  mdlSize - mdlAccuracy
+            if (mdlScore < bestMDLScore):
+                bestMDLScore = mdlScore
+                bestNewArcList = copy.deepcopy(newArcList)
+                bestNewCptList = copy.deepcopy(newCptList)
+            print newArcList
+            print mdlScore
+        elif (len(arcList[i]) == 3):
+            childNode = arcList[i][0]
+            for j in range (1,3):
+                parentNode = arcList[i][j]
+                otherParentNode = arcList[i][3-j]                
+                newArcList = copy.deepcopy(arcList)
+                del newArcList[i][j]
+                newCptList = copy.deepcopy(cptList)
+                newCptList[i] = CPT(theData, childNode, otherParentNode, noStates)
+                mdlSize = MDLSize(newArcList, newCptList, noDataPoints, noStates)
+                mdlAccuracy = MDLAccuracy(theData, newArcList, newCptList)
+                mdlScore =  mdlSize - mdlAccuracy
+                if (mdlScore < bestMDLScore):
+                    bestMDLScore = mdlScore
+                    bestNewArcList = copy.deepcopy(newArcList)
+                    bestNewCptList = copy.deepcopy(newCptList)
+                print newArcList
+                print mdlScore
+    print bestNewArcList
 # Coursework 3 task 6 ends here
-    return array(bestScoringNetwork)
+    return bestNewArcList, bestNewCptList, bestMDLScore
 #
 # End of coursework 3
 #
@@ -371,3 +415,6 @@ AppendString(outputFile,mdlAccuracy)
 mdlScore = mdlSize - mdlAccuracy
 AppendString(outputFile,"The MDLScore of the HepatitisC data set")
 AppendString(outputFile,mdlScore)
+bestArcList, bestCptList, bestMDLScore = BestScoringNetwork(theData, noStates, noDataPoints)
+AppendString(outputFile,"The score of best network with one arc removed")
+AppendString(outputFile,bestMDLScore)
