@@ -170,6 +170,7 @@ def ExampleBayesianNetwork(theData, noStates):
     cpt5 = CPT(theData, 5, 3, noStates)
     cptList = [cpt0, cpt1, cpt2, cpt3, cpt4, cpt5]
 # Coursework 3 task 2 begins here
+    # use result of spanning tree from corusework 2 to construct Bayesian Network
     arcList = [[0],[1],[2,0],[3,4],[4,1],[5,4],[6,1],[7,0,1],[8,7]]
     cpt0 = Prior(theData, 0, noStates)
     cpt1 = Prior(theData, 1, noStates)
@@ -189,6 +190,7 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
     mdlSize = 0.0
 # Coursework 3 task 3 begins here
     noParameters = 0
+    # calculate number of paramenters in the model
     for i in range (0,len(noStates)):
         noDimensions = len(cptList[i].shape)
         if noDimensions == 1:
@@ -201,6 +203,7 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
                 else:
                     noDegreesFreedom = noDegreesFreedom * cptList[i].shape[j]
             noParameters = noParameters + noDegreesFreedom
+    # calculate MDL size from equation given in the lecture notes
     if (noDataPoints != 0):
         mdlSize = noParameters * 1/2 * math.log(noDataPoints,2)
     else:
@@ -232,6 +235,7 @@ def JointProbability(dataPoint, arcList, cptList):
 def MDLAccuracy(theData, arcList, cptList):
     mdlAccuracy=0
 # Coursework 3 task 5 begins here
+    # calculate MDL accuracy using equation given in the lecture notes
     for i in range(0,len(theData)):
         if (JointProbability(theData[i], arcList, cptList) != 0):
             mdlAccuracy = mdlAccuracy + math.log(JointProbability(theData[i], arcList, cptList),2)
@@ -241,19 +245,27 @@ def MDLAccuracy(theData, arcList, cptList):
 # Function to find the best scoring network formed by deleting one arc from spanning tree
 def BestScoringNetwork(theData, noStates, noDataPoints):
 # Coursework 3 task 6 begins here
+    # NOTE: here we return the best scoring network as well as the MDLscore for that network!
     arcList, cptList = ExampleBayesianNetwork(theData, noStates);
     print arcList
+    # update to get best MDL score given all possible one arc removals
     bestMDLScore = numpy.inf
     for i in range (0,len(arcList)):
         print i
         print arcList[i]
-        if (len(arcList[i]) == 2):
+        for j in range (1,len(arcList[i])):
             childNode = arcList[i][0]
-            parentNode = arcList[i][1]
+            parentNode = arcList[i][j]
             newArcList = copy.deepcopy(arcList)
-            del newArcList[i][1]
+            del newArcList[i][j]
             newCptList = copy.deepcopy(cptList)
-            newCptList[i] = Prior(theData, childNode, noStates)
+            # NOTE: we assume each node has either: no parents (i.e. it is root node), single parent or 2 parents (and thus NO more)!!!
+            if (len(arcList[i]) == 2):
+                newCptList[i] = Prior(theData, childNode, noStates)
+            elif (len(arcList[i]) == 3):
+                otherParentNode = arcList[i][len(arcList[i])-j]
+                newCptList[i] = CPT(theData, childNode, otherParentNode, noStates)
+            # calculate MDL score for new network with one arc removed from MDLSize and MDLAccuracy values
             mdlSize = MDLSize(newArcList, newCptList, noDataPoints, noStates)
             mdlAccuracy = MDLAccuracy(theData, newArcList, newCptList)
             mdlScore =  mdlSize - mdlAccuracy
@@ -263,24 +275,6 @@ def BestScoringNetwork(theData, noStates, noDataPoints):
                 bestNewCptList = copy.deepcopy(newCptList)
             print newArcList
             print mdlScore
-        elif (len(arcList[i]) == 3):
-            childNode = arcList[i][0]
-            for j in range (1,3):
-                parentNode = arcList[i][j]
-                otherParentNode = arcList[i][3-j]                
-                newArcList = copy.deepcopy(arcList)
-                del newArcList[i][j]
-                newCptList = copy.deepcopy(cptList)
-                newCptList[i] = CPT(theData, childNode, otherParentNode, noStates)
-                mdlSize = MDLSize(newArcList, newCptList, noDataPoints, noStates)
-                mdlAccuracy = MDLAccuracy(theData, newArcList, newCptList)
-                mdlScore =  mdlSize - mdlAccuracy
-                if (mdlScore < bestMDLScore):
-                    bestMDLScore = mdlScore
-                    bestNewArcList = copy.deepcopy(newArcList)
-                    bestNewCptList = copy.deepcopy(newCptList)
-                print newArcList
-                print mdlScore
     print bestNewArcList
 # Coursework 3 task 6 ends here
     return bestNewArcList, bestNewCptList, bestMDLScore
@@ -331,7 +325,7 @@ def CreatePartialReconstructions(aBasis, aMean, componentMags):
 
 def PrincipalComponents(theData):
     orthoPhi = []
-    # Coursework 4 task 3 begins here
+    # Coursework 4 task 6 begins here
     # The first part is almost identical to the above Covariance function, but because the
     # data has so many variables you need to use the Kohonen Lowe method described in lecture 15
     # The output should be a list of the principal components normalised and sorted in descending
@@ -344,6 +338,7 @@ def PrincipalComponents(theData):
 #
 # main program part for Coursework 1
 #
+
 """outputFile = "IDAPIResults01.txt"
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
 theData = array(datain)
@@ -400,6 +395,7 @@ AppendArray(outputFile,spanningTree)"""
 #
 # main program part for Coursework 3
 #
+
 outputFile = "IDAPIResults03.txt"
 AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
 AppendString(outputFile,"") #blank line
