@@ -247,12 +247,9 @@ def BestScoringNetwork(theData, noStates, noDataPoints):
 # Coursework 3 task 6 begins here
     # NOTE: here we return the best scoring network as well as the MDLscore for that network!
     arcList, cptList = ExampleBayesianNetwork(theData, noStates);
-    print arcList
     # update to get best MDL score given all possible one arc removals
     bestMDLScore = numpy.inf
     for i in range (0,len(arcList)):
-        print i
-        print arcList[i]
         for j in range (1,len(arcList[i])):
             childNode = arcList[i][0]
             parentNode = arcList[i][j]
@@ -273,9 +270,6 @@ def BestScoringNetwork(theData, noStates, noDataPoints):
                 bestMDLScore = mdlScore
                 bestNewArcList = copy.deepcopy(newArcList)
                 bestNewCptList = copy.deepcopy(newCptList)
-            print newArcList
-            print mdlScore
-    print bestNewArcList
 # Coursework 3 task 6 ends here
     return bestNewArcList, bestNewCptList, bestMDLScore
 #
