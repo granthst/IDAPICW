@@ -286,41 +286,51 @@ def BestScoringNetwork(theData, noStates, noDataPoints):
 def Mean(theData):
     realData = theData.astype(float)
     noVariables=theData.shape[1]
-    mean = []
     # Coursework 4 task 1 begins here
-
-
-
+    if theData.shape[0] != 0:
+        mean = realData.sum(axis=0)/theData.shape[0]
+    else:
+        mean = zeros(noVariables)
     # Coursework 4 task 1 ends here
     return array(mean)
-
 
 def Covariance(theData):
     realData = theData.astype(float)
     noVariables=theData.shape[1]
     covar = zeros((noVariables, noVariables), float)
     # Coursework 4 task 2 begins here
-
-
+    uMatrix = numpy.subtract(realData,Mean(theData))
+    if theData.shape[0] > 1:
+        covar = numpy.dot(uMatrix.transpose(),uMatrix) / (theData.shape[0]-1)
+    elif theData.shape[0] == 1:
+        covar = numpy.dot(uMatrix.transpose(),uMatrix)
     # Coursework 4 task 2 ends here
     return covar
-def CreateEigenfaceFiles(theBasis):
-    adummystatement = 0 #delete this when you do the coursework
-    # Coursework 4 task 3 begins here
 
+def CreateEigenfaceFiles(theBasis):
+    # Coursework 4 task 3 begins here
+    for i in range(0,theBasis.shape[0]):
+        filename = "PrincipalComponent" + str(i) + ".jpg"
+        SaveEigenface(theBasis[i,:],filename)
     # Coursework 4 task 3 ends here
 
 def ProjectFace(theBasis, theMean, theFaceImage):
     magnitudes = []
     # Coursework 4 task 4 begins here
-
+    pcaSpacePoints = numpy.dot(numpy.subtract(theFaceImage,theMean),theBasis.transpose())
+    #print pcaSpacePoints
+   # magnitudes = numpy.absolute(pcaSpacePoints)
+    magnitudes = pcaSpacePoints
     # Coursework 4 task 4 ends here
     return array(magnitudes)
 
 def CreatePartialReconstructions(aBasis, aMean, componentMags):
-    adummystatement = 0 #delete this when you do the coursework
     # Coursework 4 task 5 begins here
-
+    for i in range(0,aBasis.shape[0]):
+        reconstructedImage = numpy.dot(componentMags[0:i],aBasis[0:i,:]) + aMean
+        print 'i = ', i, ' reconstructedImage ', reconstructedImage
+        filename = "ReconstructedImage" + str(i) + ".jpg"
+        SaveEigenface(reconstructedImage,filename)
     # Coursework 4 task 5 ends here
 
 def PrincipalComponents(theData):
@@ -395,9 +405,9 @@ AppendArray(outputFile,spanningTree)"""
 #
 # main program part for Coursework 3
 #
-
+"""
 outputFile = "IDAPIResults03.txt"
-AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073)")
+AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
 AppendString(outputFile,"") #blank line
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
@@ -413,4 +423,27 @@ AppendString(outputFile,"The MDLScore of the HepatitisC data set")
 AppendString(outputFile,mdlScore)
 bestArcList, bestCptList, bestMDLScore = BestScoringNetwork(theData, noStates, noDataPoints)
 AppendString(outputFile,"The score of best network with one arc removed")
-AppendString(outputFile,bestMDLScore)
+AppendString(outputFile,bestMDLScore)"""
+
+#
+# main program part for Coursework 4
+#
+outputFile = "IDAPIResults04.txt"
+AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
+AppendString(outputFile,"") #blank line
+noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
+theData = array(datain)
+mean = Mean(theData)
+AppendString(outputFile,"The mean vector of the HepatitisC data set")
+AppendList(outputFile,mean)
+cov = Covariance(theData)
+AppendString(outputFile,"The covariance matrix of the HepatitisC data set")
+AppendArray(outputFile,cov)
+principalComponents = ReadEigenfaceBasis()
+meanFace = ReadOneImage("MeanImage.jpg")
+CreateEigenfaceFiles(principalComponents)
+faceImageC = ReadOneImage("c.pgm")
+magnitudes = ProjectFace(principalComponents, array(meanFace), array(faceImageC))
+AppendString(outputFile,"The component magnitudes for image c.pgm in the principal component basis")
+AppendList(outputFile,magnitudes)
+CreatePartialReconstructions(principalComponents, meanFace, magnitudes)
