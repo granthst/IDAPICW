@@ -4,6 +4,7 @@
 from IDAPICourseworkLibrary import *
 from numpy import *
 import copy
+
 #
 # Coursework 1 begins here
 #
@@ -328,7 +329,7 @@ def CreatePartialReconstructions(aBasis, aMean, componentMags):
     # Coursework 4 task 5 begins here
     for i in range(0,aBasis.shape[0]):
         reconstructedImage = numpy.dot(componentMags[0:i],aBasis[0:i,:]) + aMean
-        print 'i = ', i, ' reconstructedImage ', reconstructedImage
+        #print 'i = ', i, ' reconstructedImage ', reconstructedImage
         filename = "ReconstructedImage" + str(i) + ".jpg"
         SaveEigenface(reconstructedImage,filename)
     # Coursework 4 task 5 ends here
@@ -340,8 +341,27 @@ def PrincipalComponents(theData):
     # data has so many variables you need to use the Kohonen Lowe method described in lecture 15
     # The output should be a list of the principal components normalised and sorted in descending
     # order of their eignevalues magnitudes
-
-
+    N = theData.shape[0]
+    n = theData.shape[1]
+    print 'n = ',n,', N = ',N
+    uMatrix = numpy.subtract(theData,Mean(theData))
+    klMatrix = numpy.dot(uMatrix,uMatrix.transpose())
+    eigenvalues,v = numpy.linalg.eig(klMatrix)
+    utuEigenvectors = numpy.dot(uMatrix.transpose(),v).transpose()
+    idx = eigenvalues.argsort()[::-1]
+    eigenvalues = eigenvalues[idx]
+    utuEigenvectors = utuEigenvectors[idx,:]
+    eigenvalues = numpy.delete(eigenvalues, N-1)
+    utuEigenvectors = numpy.delete(utuEigenvectors, N-1, axis=0)
+    print eigenvalues
+    print utuEigenvectors
+    orthoPhi = list(numpy.zeros((N-1,n)))
+    for i in range(0,N-1):                                 
+        normalisation = math.sqrt(eigenvalues[i])
+    	if normalisation != 0:
+    	    orthoPhi[i] = list(utuEigenvectors[i,:]/normalisation)
+    	else:
+    	    orthoPhi[i] = list(numpy.zeros((N-1,n)))
     # Coursework 4 task 6 ends here
     return array(orthoPhi)
 
@@ -447,3 +467,12 @@ magnitudes = ProjectFace(principalComponents, array(meanFace), array(faceImageC)
 AppendString(outputFile,"The component magnitudes for image c.pgm in the principal component basis")
 AppendList(outputFile,magnitudes)
 CreatePartialReconstructions(principalComponents, meanFace, magnitudes)
+imageData = array(ReadImages())
+meanFaceKL = Mean(imageData)
+orthoPhi = PrincipalComponents(imageData)
+CreateEigenfaceFiles(orthoPhi)
+faceImageCKL = ReadOneImage("c.pgm")
+magnitudesKL = ProjectFace(orthoPhi, array(meanFaceKL), array(faceImageCKL))
+AppendString(outputFile,"The component magnitudes for image c.pgm in the principal component basis for task 4.6")
+AppendList(outputFile,magnitudesKL)
+CreatePartialReconstructions(orthoPhi, meanFaceKL, magnitudesKL)
