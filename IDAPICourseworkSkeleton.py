@@ -286,10 +286,11 @@ def BestScoringNetwork(theData, noStates, noDataPoints):
 #
 def Mean(theData):
     realData = theData.astype(float)
-    noVariables=theData.shape[1]
+    noVariables = theData.shape[1]
     # Coursework 4 task 1 begins here
-    if theData.shape[0] != 0:
-        mean = realData.sum(axis=0)/theData.shape[0]
+    noDataPoints = theData.shape[0]
+    if noDataPoints != 0:
+        mean = realData.sum(axis=0)/noDataPoints
     else:
         mean = zeros(noVariables)
     # Coursework 4 task 1 ends here
@@ -297,19 +298,23 @@ def Mean(theData):
 
 def Covariance(theData):
     realData = theData.astype(float)
-    noVariables=theData.shape[1]
+    noVariables = theData.shape[1]
     covar = zeros((noVariables, noVariables), float)
     # Coursework 4 task 2 begins here
+    noDataPoints = theData.shape[0]
+    # calculate mean-centered data (U matrix)
     uMatrix = numpy.subtract(realData,Mean(theData))
-    if theData.shape[0] > 1:
-        covar = numpy.dot(uMatrix.transpose(),uMatrix) / (theData.shape[0]-1)
-    elif theData.shape[0] == 1:
+    # calculate covariance matrix = 1/(N-1)*(U'U) where ' indicates transpose operator
+    if noDataPoints > 1:
+        covar = numpy.dot(uMatrix.transpose(),uMatrix) / (noDataPoints-1)
+    elif noDataPoints == 1:
         covar = numpy.dot(uMatrix.transpose(),uMatrix)
     # Coursework 4 task 2 ends here
     return covar
 
 def CreateEigenfaceFiles(theBasis):
     # Coursework 4 task 3 begins here
+    # save each principal component as eigenface in new file
     for i in range(0,theBasis.shape[0]):
         filename = "PrincipalComponent" + str(i) + ".jpg"
         SaveEigenface(theBasis[i,:],filename)
@@ -318,18 +323,15 @@ def CreateEigenfaceFiles(theBasis):
 def ProjectFace(theBasis, theMean, theFaceImage):
     magnitudes = []
     # Coursework 4 task 4 begins here
-    pcaSpacePoints = numpy.dot(numpy.subtract(theFaceImage,theMean),theBasis.transpose())
-    #print pcaSpacePoints
-   # magnitudes = numpy.absolute(pcaSpacePoints)
-    magnitudes = pcaSpacePoints
+    magnitudes = numpy.dot(numpy.subtract(theFaceImage,theMean),theBasis.transpose())
     # Coursework 4 task 4 ends here
     return array(magnitudes)
 
 def CreatePartialReconstructions(aBasis, aMean, componentMags):
     # Coursework 4 task 5 begins here
+    # reconstruct each image and save the eigenface in a new file
     for i in range(0,aBasis.shape[0]):
         reconstructedImage = numpy.dot(componentMags[0:i],aBasis[0:i,:]) + aMean
-        #print 'i = ', i, ' reconstructedImage ', reconstructedImage
         filename = "ReconstructedImage" + str(i) + ".jpg"
         SaveEigenface(reconstructedImage,filename)
     # Coursework 4 task 5 ends here
@@ -340,28 +342,33 @@ def PrincipalComponents(theData):
     # The first part is almost identical to the above Covariance function, but because the
     # data has so many variables you need to use the Kohonen Lowe method described in lecture 15
     # The output should be a list of the principal components normalised and sorted in descending
-    # order of their eignevalues magnitudes
+    # order of their eigenvalues magnitudes
+    # get number of data points (N) and number of variables (n)
     N = theData.shape[0]
     n = theData.shape[1]
-    print 'n = ',n,', N = ',N
+    # calculate mean-centered data matrix (U)
     uMatrix = numpy.subtract(theData,Mean(theData))
+    # consider the eigenvalues and eigevectors of Kohonen Lowe matrix = UU' (where ' indicates transpose)
     klMatrix = numpy.dot(uMatrix,uMatrix.transpose())
     eigenvalues,v = numpy.linalg.eig(klMatrix)
+    # use eigenvectors of Kohonen Lowe matrix to calculate unnormalised eigenvectors of U'U,
+    # and sort them in descending order of eigenvalue magnitude
     utuEigenvectors = numpy.dot(uMatrix.transpose(),v).transpose()
     idx = eigenvalues.argsort()[::-1]
     eigenvalues = eigenvalues[idx]
     utuEigenvectors = utuEigenvectors[idx,:]
+    # since rank of U'U is at most N-1, there are at most N-1 non-zero eigenvalues in UU',
+    # so we only consider the N-1 eigenvectors associated with N-1 largest (in magnitude) eigenvalues
     eigenvalues = numpy.delete(eigenvalues, N-1)
     utuEigenvectors = numpy.delete(utuEigenvectors, N-1, axis=0)
-    print eigenvalues
-    print utuEigenvectors
     orthoPhi = list(numpy.zeros((N-1,n)))
+    # normalise the resulting eigenvectors by dividing by sqaure root of its associated eigenvalue
     for i in range(0,N-1):                                 
         normalisation = math.sqrt(eigenvalues[i])
-    	if normalisation != 0:
-    	    orthoPhi[i] = list(utuEigenvectors[i,:]/normalisation)
-    	else:
-    	    orthoPhi[i] = list(numpy.zeros((N-1,n)))
+        if normalisation != 0:
+            orthoPhi[i] = list(utuEigenvectors[i,:]/normalisation)
+        else:
+            orthoPhi[i] = list(numpy.zeros((N-1,n)))
     # Coursework 4 task 6 ends here
     return array(orthoPhi)
 
@@ -448,8 +455,9 @@ AppendString(outputFile,bestMDLScore)"""
 #
 # main program part for Coursework 4
 #
+
 outputFile = "IDAPIResults04.txt"
-AppendString(outputFile,"Coursework Three Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
+AppendString(outputFile,"Coursework Four Results by Hesam Ipakchi (00648378), Yijie Ge (00650073), Joysen Goes (00649883)")
 AppendString(outputFile,"") #blank line
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
@@ -459,6 +467,7 @@ AppendList(outputFile,mean)
 cov = Covariance(theData)
 AppendString(outputFile,"The covariance matrix of the HepatitisC data set")
 AppendArray(outputFile,cov)
+
 principalComponents = ReadEigenfaceBasis()
 meanFace = ReadOneImage("MeanImage.jpg")
 CreateEigenfaceFiles(principalComponents)
@@ -467,12 +476,13 @@ magnitudes = ProjectFace(principalComponents, array(meanFace), array(faceImageC)
 AppendString(outputFile,"The component magnitudes for image c.pgm in the principal component basis")
 AppendList(outputFile,magnitudes)
 CreatePartialReconstructions(principalComponents, meanFace, magnitudes)
+
+# Note: run this block AFTER saving image files from previous block in new location,
+# otherwise some files may be over-written! E.g. comment out then run, then uncomment and run again...
 imageData = array(ReadImages())
 meanFaceKL = Mean(imageData)
 orthoPhi = PrincipalComponents(imageData)
 CreateEigenfaceFiles(orthoPhi)
 faceImageCKL = ReadOneImage("c.pgm")
 magnitudesKL = ProjectFace(orthoPhi, array(meanFaceKL), array(faceImageCKL))
-AppendString(outputFile,"The component magnitudes for image c.pgm in the principal component basis for task 4.6")
-AppendList(outputFile,magnitudesKL)
 CreatePartialReconstructions(orthoPhi, meanFaceKL, magnitudesKL)
